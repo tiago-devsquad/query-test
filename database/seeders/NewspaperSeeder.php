@@ -2,16 +2,13 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\Newspaper;
 use Illuminate\Database\Seeder;
 
 class NewspaperSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        //
+        Newspaper::factory()->count(250)->create();
     }
 }
