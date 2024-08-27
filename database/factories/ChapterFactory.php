@@ -3,13 +3,13 @@
 namespace Database\Factories;
 
 use App\Models\AreaOfInterest;
-use App\Models\Topic;
+use App\Models\Chapter;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<Topic>
+ * @extends Factory<Chapter>
  */
-class TopicFactory extends Factory
+class ChapterFactory extends Factory
 {
     public function definition(): array
     {
@@ -21,10 +21,10 @@ class TopicFactory extends Factory
 
     public function withAreasOfInterest(int $count = 5): self
     {
-        return $this->afterCreating(function (Topic $topic) use ($count) {
+        return $this->afterCreating(function (Chapter $chapter) use ($count) {
             $areasOfInterest = AreaOfInterest::query()->inRandomOrder()->take($count)->get();
 
-            $topic->areasOfInterest()->attach($areasOfInterest);
+            $chapter->areasOfInterest()->attach($areasOfInterest);
         });
     }
 }

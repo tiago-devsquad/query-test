@@ -18,6 +18,21 @@ class AreaOfInterest extends Model
 
     public function newspapers(): BelongsToMany
     {
-        return $this->belongsToMany(Newspaper::class);
+        return $this->belongsToMany(Newspaper::class)->withTimestamps();
+    }
+
+    public function caseStudies(): BelongsToMany
+    {
+        return $this->belongsToMany(CaseStudy::class)->withTimestamps();
+    }
+
+    public function topics(): BelongsToMany
+    {
+        return $this->belongsToMany(Topic::class)->withTimestamps();
+    }
+
+    public function chapters(): BelongsToMany
+    {
+        return $this->belongsToMany(Chapter::class)->withTimestamps();
     }
 }

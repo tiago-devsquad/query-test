@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Topic extends Model
 {
@@ -13,4 +14,9 @@ class Topic extends Model
         'title',
         'description',
     ];
+
+    public function areasOfInterest(): BelongsToMany
+    {
+        return $this->belongsToMany(AreaOfInterest::class)->withTimestamps();
+    }
 }
