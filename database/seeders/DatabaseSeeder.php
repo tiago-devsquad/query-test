@@ -12,6 +12,7 @@ class DatabaseSeeder extends Seeder
             NewspaperSeeder::class,
             CaseStudySeeder::class,
             TopicSeeder::class,
+            ChaptersSeeder::class,
         ]);
     }
 }
