@@ -9,6 +9,6 @@ class CaseStudySeeder extends Seeder
 {
     public function run(): void
     {
-        CaseStudy::factory()->count(10000)->withAreasOfInterest()->create();
+        CaseStudy::factory()->count(1000)->withAreasOfInterest()->create();
     }
 }

@@ -9,6 +9,6 @@ class NewspaperSeeder extends Seeder
 {
     public function run(): void
     {
-        Newspaper::factory()->count(250)->withAreasOfInterest()->create();
+        Newspaper::factory()->count(500)->withAreasOfInterest()->create();
     }
 }
