@@ -31,7 +31,7 @@
                                             {{ $track->area_of_interest_name }}
                                         </td>
                                         <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-{{--                                            {{ $track->area_of_interest_count }}--}}
+                                            {{ $this->secondsForHumans($track->time_on_platform) }}
                                         </td>
                                     </tr>
                                 @endforeach

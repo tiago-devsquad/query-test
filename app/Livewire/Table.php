@@ -28,7 +28,7 @@ class Table extends Component
     {
         return PageTracker::query()
             ->select([
-                //$this->calculateTotalTimeOnPlatform(),
+                $this->calculateTotalTimeOnPlatform(),
                 'users.name as user_name',
                 'area_of_interests.name as area_of_interest_name',
             ])
@@ -39,7 +39,7 @@ class Table extends Component
             ->leftJoin('area_of_interests', 'ranked_aoi.area_of_interest_id', '=', 'area_of_interests.id')
             ->leftJoin('users', 'page_trackers.user_id', '=', 'users.id')
             ->groupBy(
-               // 'time_on_platform',
+               'time_on_platform',
                 'page_trackers.user_id',
                 'area_of_interests.id',
             )
