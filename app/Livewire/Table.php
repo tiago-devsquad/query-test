@@ -27,10 +27,10 @@ class Table extends Component
     {
         return AreaOfInterest::query()
             ->select([
+                DB::raw('COALESCE(ranked_areas_of_interest.area_of_interest_count, 0) as area_of_interest_count'),
                 'area_of_interests.id',
                 'area_of_interests.name',
-                'users.name as most_active_user',
-                DB::raw('COALESCE(ranked_areas_of_interest.area_of_interest_count, 0) as area_of_interest_count')
+                'users.name as most_active_user'
             ])
             ->leftJoinSub($this->mostViewedAreasOfInterestSubQuery(), 'ranked_areas_of_interest', function (JoinClause $join) {
                 $join->on('area_of_interests.id', '=', 'ranked_areas_of_interest.area_of_interest_id');
@@ -61,8 +61,8 @@ class Table extends Component
             ->join($mapping['table'], 'page_trackers.trackable_id', '=', $mapping['id_column'])
             ->where('trackable_type', $trackableType)
             ->select([
-                $mapping['table'].".area_of_interest_id",
-                DB::raw('COUNT(*) as area_of_interest_count')
+                DB::raw('COUNT(*) as area_of_interest_count'),
+                $mapping['table'].".area_of_interest_id"
             ])
             ->groupBy($mapping['table'].".area_of_interest_id");
     }
@@ -103,9 +103,9 @@ class Table extends Component
         return DB::query()
             ->fromSub($combinedData, 'ranked_data')
             ->select([
+                DB::raw('MAX(area_of_interest_count) as total_count'),
                 'area_of_interest_id',
-                'user_id',
-                DB::raw('MAX(area_of_interest_count) as total_count')
+                'user_id'
             ])
             ->where('rn', 1)
             ->groupBy('area_of_interest_id', 'user_id');
@@ -123,8 +123,8 @@ class Table extends Component
                 ->unionAll($rankedChapters)
                 ->unionAll($rankedCaseStudies), 'combined_data')
             ->select([
-                'area_of_interest_id',
-                DB::raw('SUM(area_of_interest_count) as area_of_interest_count')
+                DB::raw('SUM(area_of_interest_count) as area_of_interest_count'),
+                'area_of_interest_id'
             ])
             ->groupBy('area_of_interest_id');
     }
