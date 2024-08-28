@@ -19,10 +19,10 @@ class CaseStudyFactory extends Factory
         ];
     }
 
-    public function withAreasOfInterest(int $count = 5): self
+    public function withAreasOfInterest(): self
     {
-        return $this->afterCreating(function (CaseStudy $case) use ($count) {
-            $areasOfInterest = AreaOfInterest::query()->inRandomOrder()->take($count)->get();
+        return $this->afterCreating(function (CaseStudy $case) {
+            $areasOfInterest = AreaOfInterest::query()->inRandomOrder()->take(rand(1, 5))->get();
 
             $case->areasOfInterest()->attach($areasOfInterest);
         });

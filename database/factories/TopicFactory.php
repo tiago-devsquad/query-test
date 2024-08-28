@@ -19,10 +19,10 @@ class TopicFactory extends Factory
         ];
     }
 
-    public function withAreasOfInterest(int $count = 5): self
+    public function withAreasOfInterest(): self
     {
-        return $this->afterCreating(function (Topic $topic) use ($count) {
-            $areasOfInterest = AreaOfInterest::query()->inRandomOrder()->take($count)->get();
+        return $this->afterCreating(function (Topic $topic) {
+            $areasOfInterest = AreaOfInterest::query()->inRandomOrder()->take(rand(1, 5))->get();
 
             $topic->areasOfInterest()->attach($areasOfInterest);
         });

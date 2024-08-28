@@ -19,10 +19,10 @@ class ChapterFactory extends Factory
         ];
     }
 
-    public function withAreasOfInterest(int $count = 5): self
+    public function withAreasOfInterest(): self
     {
-        return $this->afterCreating(function (Chapter $chapter) use ($count) {
-            $areasOfInterest = AreaOfInterest::query()->inRandomOrder()->take($count)->get();
+        return $this->afterCreating(function (Chapter $chapter) {
+            $areasOfInterest = AreaOfInterest::query()->inRandomOrder()->take(rand(1, 5))->get();
 
             $chapter->areasOfInterest()->attach($areasOfInterest);
         });

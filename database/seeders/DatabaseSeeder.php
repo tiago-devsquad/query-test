@@ -16,9 +16,9 @@ class DatabaseSeeder extends Seeder
         $this->call([
             AreaOfInterestSeeder::class,
             NewspaperSeeder::class,
-            CaseStudySeeder::class,
             TopicSeeder::class,
             ChapterSeeder::class,
+            CaseStudySeeder::class,
             PageTrackerSeeder::class,
         ]);
     }

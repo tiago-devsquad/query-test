@@ -9,6 +9,6 @@ class ChapterSeeder extends Seeder
 {
     public function run(): void
     {
-        Chapter::factory()->count(800)->withAreasOfInterest()->create();
+        Chapter::factory()->count(300)->withAreasOfInterest()->create();
     }
 }
