@@ -2,14 +2,15 @@
 
 namespace App\Livewire;
 
-use App\Models\AreaOfInterest;
 use App\Models\CaseStudy;
 use App\Models\Chapter;
 use App\Models\Newspaper;
+use App\Models\PageTracker;
 use App\Models\Topic;
 use Carbon\CarbonInterval;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Query\Builder;
+use Illuminate\Database\Query\Expression;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
@@ -25,21 +26,23 @@ class Table extends Component
 
     public function getPageTrackerProperty(): LengthAwarePaginator
     {
-        return AreaOfInterest::query()
+        return PageTracker::query()
             ->select([
-                'area_of_interests.id',
-                'area_of_interests.name',
-                'users.name as most_active_user',
-                DB::raw('COALESCE(ranked_areas_of_interest.area_of_interest_count, 0) as area_of_interest_count')
+                //$this->calculateTotalTimeOnPlatform(),
+                'users.name as user_name',
+                'area_of_interests.name as area_of_interest_name',
             ])
-            ->leftJoinSub($this->mostViewedAreasOfInterestSubQuery(), 'ranked_areas_of_interest', function (JoinClause $join) {
-                $join->on('area_of_interests.id', '=', 'ranked_areas_of_interest.area_of_interest_id');
+            ->leftJoinSub($this->subQueryMostViewedAreasOfInterest(), 'ranked_aoi', function (JoinClause $join) {
+                $join->on('page_trackers.user_id', '=', 'ranked_aoi.user_id')
+                    ->where('ranked_aoi.rn_area_of_interest', '=', 1);
             })
-            ->leftJoinSub($this->mostActiveUserByAreaOfInterestSubQuery(), 'ranked_users', function (JoinClause $join) {
-                $join->on('area_of_interests.id', '=', 'ranked_users.area_of_interest_id');
-            })
-            ->leftJoin('users', 'ranked_users.user_id', '=', 'users.id')
-            ->orderBy('ranked_areas_of_interest.area_of_interest_count', 'desc')
+            ->leftJoin('area_of_interests', 'ranked_aoi.area_of_interest_id', '=', 'area_of_interests.id')
+            ->leftJoin('users', 'page_trackers.user_id', '=', 'users.id')
+            ->groupBy(
+               // 'time_on_platform',
+                'page_trackers.user_id',
+                'area_of_interests.id',
+            )
             ->paginate(10);
     }
 
@@ -53,7 +56,17 @@ class Table extends Component
         };
     }
 
-    private function areasOfInterestSubQueryBuilder(string $trackableType): Builder
+    private function calculateTotalTimeOnPlatform(): Expression
+    {
+        $timeSpent = PageTracker::query()
+            ->selectRaw('SUM(time_spent)')
+            ->whereColumn('user_id', 'users.id')
+            ->toRawSql();
+
+        return DB::raw("($timeSpent) as time_on_platform");
+    }
+
+    private function rankedAreaOfInterestSubQueryBuilder(string $trackableType): Builder
     {
         $mapping = $this->subqueryMapping($trackableType);
 
@@ -62,71 +75,41 @@ class Table extends Component
             ->where('trackable_type', $trackableType)
             ->select([
                 $mapping['table'].".area_of_interest_id",
-                DB::raw('COUNT(*) as area_of_interest_count')
+                'page_trackers.user_id'
             ])
-            ->groupBy($mapping['table'].".area_of_interest_id");
+            ->groupBy($mapping['table'].".area_of_interest_id", 'page_trackers.user_id');
     }
 
-    private function mostActiveUserSubQueryBuilder(string $trackableType): Builder
+    private function subQueryMostViewedAreasOfInterest(): Builder
     {
-        $mapping = $this->subqueryMapping($trackableType);
+        $rankedNewspaper = $this->rankedAreaOfInterestSubQueryBuilder(Newspaper::class);
+        $rankedTopics    = $this->rankedAreaOfInterestSubQueryBuilder(Topic::class);
+        $rankedChapters  = $this->rankedAreaOfInterestSubQueryBuilder(Chapter::class);
+        $rankedCaseStudy = $this->rankedAreaOfInterestSubQueryBuilder(CaseStudy::class);
 
-        return DB::table('page_trackers')
-            ->join($mapping['table'], 'page_trackers.trackable_id', '=', $mapping['id_column'])
-            ->where('trackable_type', $trackableType)
-            ->select([
-                'page_trackers.user_id',
-                $mapping['table'].".area_of_interest_id",
-            ])
-            ->groupBy('page_trackers.user_id', $mapping['table'].".area_of_interest_id");
-    }
+//        $combinedData = DB::table(DB::raw("({$rankedNewspaper->toRawSql()} UNION ALL {$rankedTopics->toRawSql()}) as combined_data"))
+//            ->select('user_id', 'area_of_interest_id');
+//
+//        return DB::table(DB::raw("({$rankedChapters->toRawSql()} UNION ALL {$combinedData->toRawSql()}) as ranked_diseases"))
+//            ->select(
+//                'user_id',
+//                'area_of_interest_id',
+//                DB::raw('COUNT(*) as area_of_interest_count'),
+//                DB::raw('ROW_NUMBER() OVER(PARTITION BY user_id ORDER BY COUNT(*) DESC) as rn_area_of_interest')
+//            )
+//            ->groupBy('user_id', 'area_of_interest_id');
 
-    private function mostActiveUserByAreaOfInterestSubQuery(): Builder
-    {
-        $rankedNewspaper   = $this->mostActiveUserSubQueryBuilder(Newspaper::class);
-        $rankedTopics      = $this->mostActiveUserSubQueryBuilder(Topic::class);
-        $rankedChapters    = $this->mostActiveUserSubQueryBuilder(Chapter::class);
-        $rankedCaseStudies = $this->mostActiveUserSubQueryBuilder(CaseStudy::class);
-
-        $combinedData = DB::query()
+        return DB::query()
             ->fromSub($rankedNewspaper->unionAll($rankedTopics)
                 ->unionAll($rankedChapters)
-                ->unionAll($rankedCaseStudies), 'combined_data')
+                ->unionAll($rankedCaseStudy), 'combined_data')
             ->select([
-                'area_of_interest_id',
                 'user_id',
+                'area_of_interest_id',
                 DB::raw('COUNT(*) as area_of_interest_count'),
-                DB::raw('ROW_NUMBER() OVER (PARTITION BY area_of_interest_id ORDER BY COUNT(*) DESC) as rn')
+                DB::raw('ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY COUNT(*) DESC) as rn_area_of_interest')
             ])
-            ->groupBy('area_of_interest_id', 'user_id');
-
-        return DB::query()
-            ->fromSub($combinedData, 'ranked_data')
-            ->select([
-                'area_of_interest_id',
-                'user_id',
-                DB::raw('MAX(area_of_interest_count) as total_count')
-            ])
-            ->where('rn', 1)
-            ->groupBy('area_of_interest_id', 'user_id');
-    }
-
-    private function mostViewedAreasOfInterestSubQuery(): Builder
-    {
-        $rankedNewspaper   = $this->areasOfInterestSubQueryBuilder(Newspaper::class);
-        $rankedTopics      = $this->areasOfInterestSubQueryBuilder(Topic::class);
-        $rankedChapters    = $this->areasOfInterestSubQueryBuilder(Chapter::class);
-        $rankedCaseStudies = $this->areasOfInterestSubQueryBuilder(CaseStudy::class);
-
-        return DB::query()
-            ->fromSub($rankedNewspaper->unionAll($rankedTopics)
-                ->unionAll($rankedChapters)
-                ->unionAll($rankedCaseStudies), 'combined_data')
-            ->select([
-                'area_of_interest_id',
-                DB::raw('SUM(area_of_interest_count) as area_of_interest_count')
-            ])
-            ->groupBy('area_of_interest_id');
+            ->groupBy('user_id', 'area_of_interest_id');
     }
 
     function secondsForHumans(string|int|null $seconds,): string
