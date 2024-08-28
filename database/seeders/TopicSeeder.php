@@ -9,6 +9,6 @@ class TopicSeeder extends Seeder
 {
     public function run(): void
     {
-        Topic::factory()->count(2500)->withAreasOfInterest()->create();
+        Topic::factory()->count(1000)->withAreasOfInterest()->create();
     }
 }

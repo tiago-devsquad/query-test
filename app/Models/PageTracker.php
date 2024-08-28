@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class PageTracker extends Model
 {
@@ -14,12 +15,14 @@ class PageTracker extends Model
         'user_id',
         'time_spent',
         'url',
-        'metadata',
+        'trackable_type',
+        'trackable_id',
     ];
 
-    protected $casts = [
-        'metadata' => 'array',
-    ];
+    public function trackable(): MorphTo
+    {
+        return $this->morphTo();
+    }
 
     public function user(): BelongsTo
     {

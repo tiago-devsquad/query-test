@@ -12,7 +12,7 @@
 
         @vite('resources/css/app.css')
     </head>
-    <body class="font-sans antialiased bg-white">
+    <body class="font-sans antialiased bg-white container mx-auto p-4">
         @livewire('table')
     </body>
 </html>

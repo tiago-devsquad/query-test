@@ -17,7 +17,6 @@ class PageTrackerFactory extends Factory
             'user_id'    => User::factory(),
             'time_spent' => fake()->numberBetween(10, 1000),
             'url'        => fake()->url,
-            'metadata'   => [],
         ];
     }
 
@@ -32,10 +31,9 @@ class PageTrackerFactory extends Factory
             $topic = Topic::query()->inRandomOrder()->first();
 
             return [
-                'metadata' => [
-                    'topic_id' => $topic->id,
-                ],
-                'url' => route('topic', $topic),
+                'trackable_type' => Topic::class,
+                'trackable_id'   => $topic->id,
+                'url'            => route('topic', $topic),
             ];
         });
     }
@@ -46,10 +44,9 @@ class PageTrackerFactory extends Factory
             $chapter = Chapter::query()->inRandomOrder()->first();
 
             return [
-                'metadata' => [
-                    'chapter_id' => $chapter->id,
-                ],
-                'url' => route('chapter', $chapter),
+                'trackable_type' => Chapter::class,
+                'trackable_id'   => $chapter->id,
+                'url'           => route('chapter', $chapter),
             ];
         });
     }
@@ -60,10 +57,9 @@ class PageTrackerFactory extends Factory
             $case = CaseStudy::query()->inRandomOrder()->first();
 
             return [
-                'metadata' => [
-                    'case_study_id' => $case->id,
-                ],
-                'url' => route('case-study', $case),
+                'trackable_type' => CaseStudy::class,
+                'trackable_id'   => $case->id,
+                'url'            => route('case-study', $case),
             ];
         });
     }
@@ -74,10 +70,9 @@ class PageTrackerFactory extends Factory
             $newspaper = Newspaper::query()->inRandomOrder()->first();
 
             return [
-                'metadata' => [
-                    'newspaper_id' => $newspaper->id,
-                ],
-                'url' => route('newspaper', $newspaper),
+                'trackable_type' => Newspaper::class,
+                'trackable_id'   => $newspaper->id,
+                'url'            => route('newspaper', $newspaper),
             ];
         });
     }

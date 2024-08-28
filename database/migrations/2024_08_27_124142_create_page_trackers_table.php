@@ -14,7 +14,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained();
             $table->integer('time_spent')->default(0);
             $table->string('url');
-            $table->json('metadata')->default(new Expression('(JSON_ARRAY())'));
+            $table->morphs('trackable');
             $table->timestamps();
         });
     }
