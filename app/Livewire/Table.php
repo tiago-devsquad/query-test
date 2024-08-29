@@ -26,7 +26,12 @@ class Table extends Component
 
     public function getPageTrackerProperty(): LengthAwarePaginator
     {
+        $query = PageTracker::query()
+            ->select('user_id')
+            ->groupBy('user_id');
+
         return PageTracker::query()
+            ->fromSub($query, 'page_trackers')
             ->select([
                 $this->calculateTotalTimeOnPlatform(),
                 'users.name as user_name',
